@@ -6,41 +6,47 @@
 
 #if defined(POLYHOOK2_OS_WINDOWS)
 
-bool PLH::MemAccessor::mem_copy(uint64_t dest, uint64_t src, uint64_t size) const {
-	memcpy((char*)dest, (char*)src, (SIZE_T)size);
-	return true;
+bool PLH::MemAccessor::mem_copy(uint64_t dest, uint64_t src, uint64_t size) const
+{
+    memcpy((char*)dest, (char*)src, static_cast<SIZE_T>(size));
+    return true;
 }
 
-bool PLH::MemAccessor::safe_mem_write(uint64_t dest, uint64_t src, uint64_t size, size_t& written) const noexcept {
-	written = 0;
-	return WriteProcessMemory(GetCurrentProcess(), (char*)dest, (char*)src, (SIZE_T)size, (PSIZE_T)&written);
+bool PLH::MemAccessor::safe_mem_write(uint64_t dest, uint64_t src, uint64_t size, size_t& written) const noexcept
+{
+    written = 0;
+    return WriteProcessMemory(GetCurrentProcess(), (char*)dest, (char*)src, static_cast<SIZE_T>(size),
+                              (PSIZE_T)&written);
 }
 
-bool PLH::MemAccessor::safe_mem_read(uint64_t src, uint64_t dest, uint64_t size, size_t& read) const noexcept {
-	HANDLE process = GetCurrentProcess();
-	read = 0;
+bool PLH::MemAccessor::safe_mem_read(uint64_t src, uint64_t dest, uint64_t size, size_t& read) const noexcept
+{
+    const HANDLE process = GetCurrentProcess();
+    read = 0;
 
-	if (ReadProcessMemory(process, (char*)src, (char*)dest, (SIZE_T)size, (PSIZE_T)&read) && read > 0)
-		return true;
+    if (ReadProcessMemory(process, (char*)src, (char*)dest, static_cast<SIZE_T>(size), (PSIZE_T)&read) && read > 0)
+        return true;
 
-	// Tries to read again on a partial copy, but limited by the end of the memory region
-	if (GetLastError() == ERROR_PARTIAL_COPY)
-	{
-		MEMORY_BASIC_INFORMATION info;
-		if (VirtualQueryEx(process, (char*)src, &info, sizeof(info)) != 0)
-		{
-			uint64_t end = (uint64_t)info.BaseAddress + info.RegionSize;
-			if (src + size > end)
-				return ReadProcessMemory(process, (char*)src, (char*)dest, (SIZE_T)(end - src), (PSIZE_T)&read) && read > 0;
-		}
-	}
-	return false;
+    // Tries to read again on a partial copy, but limited by the end of the memory region
+    if (GetLastError() == ERROR_PARTIAL_COPY)
+    {
+        MEMORY_BASIC_INFORMATION info;
+        if (VirtualQueryEx(process, (char*)src, &info, sizeof(info)) != 0)
+        {
+            const uint64_t end = (uint64_t)info.BaseAddress + info.RegionSize;
+            if (src + size > end)
+                return ReadProcessMemory(process, (char*)src, (char*)dest, static_cast<SIZE_T>(end - src),
+                                         (PSIZE_T)&read) && read > 0;
+        }
+    }
+    return false;
 }
 
-PLH::ProtFlag PLH::MemAccessor::mem_protect(uint64_t dest, uint64_t size, PLH::ProtFlag prot, bool& status) const {
-	DWORD orig;
-	status = VirtualProtect((char*)dest, (SIZE_T)size, TranslateProtection(prot), &orig) != 0;
-	return TranslateProtection(orig);
+PLH::ProtFlag PLH::MemAccessor::mem_protect(uint64_t dest, uint64_t size, ProtFlag prot, bool& status) const
+{
+    DWORD orig;
+    status = VirtualProtect((char*)dest, static_cast<SIZE_T>(size), TranslateProtection(prot), &orig) != 0;
+    return TranslateProtection(orig);
 }
 
 #elif defined(POLYHOOK2_OS_LINUX)

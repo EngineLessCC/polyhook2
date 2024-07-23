@@ -10,7 +10,7 @@ void* ALLOC_Pop(ALLOC_Allocator* alloc);
 //----------------------------------------------------------------------------
 void* ALLOC_NewBlock(ALLOC_Allocator* self)
 {
-    ALLOC_Block* pBlock = NULL;
+    ALLOC_Block* pBlock = nullptr;
 
     // If we have not exceeded the pool maximum
     if (self->poolIndex < self->maxBlocks)
@@ -20,7 +20,7 @@ void* ALLOC_NewBlock(ALLOC_Allocator* self)
     }
 
     return pBlock;
-} 
+}
 
 //----------------------------------------------------------------------------
 // ALLOC_Push
@@ -31,7 +31,7 @@ void ALLOC_Push(ALLOC_Allocator* self, void* pBlock)
         return;
 
     // Get a pointer to the client's location within the block
-    ALLOC_Block* pClient = (ALLOC_Block*)pBlock;
+    auto pClient = static_cast<ALLOC_Block*>(pBlock);
 
     // Point client block's next pointer to head
     pClient->pNext = self->pHead;
@@ -45,7 +45,7 @@ void ALLOC_Push(ALLOC_Allocator* self, void* pBlock)
 //----------------------------------------------------------------------------
 void* ALLOC_Pop(ALLOC_Allocator* self)
 {
-    ALLOC_Block* pBlock = NULL;
+    ALLOC_Block* pBlock = nullptr;
 
     // Is the free-list empty?
     if (self->pHead)
@@ -54,24 +54,24 @@ void* ALLOC_Pop(ALLOC_Allocator* self)
         pBlock = self->pHead;
 
         // Set the head to the next block
-        self->pHead = (ALLOC_Block*)self->pHead->pNext;
+        self->pHead = static_cast<ALLOC_Block*>(self->pHead->pNext);
     }
- 
+
     return pBlock;
-} 
+}
 
 //----------------------------------------------------------------------------
 // ALLOC_Alloc
 //----------------------------------------------------------------------------
 void* ALLOC_Alloc(ALLOC_HANDLE hAlloc, size_t size)
 {
-    ALLOC_Allocator* self = NULL;
-    void* pBlock = NULL;
+    ALLOC_Allocator* self = nullptr;
+    void* pBlock = nullptr;
 
     assert(hAlloc);
 
     // Convert handle to an ALLOC_Allocator instance
-    self = (ALLOC_Allocator*)hAlloc;
+    self = static_cast<ALLOC_Allocator*>(hAlloc);
 
     // Ensure requested size fits within memory block
     assert(size <= self->blockSize);
@@ -95,16 +95,16 @@ void* ALLOC_Alloc(ALLOC_HANDLE hAlloc, size_t size)
         {
             self->maxBlocksInUse = self->blocksInUse;
         }
-    } 
+    }
     return pBlock;
-} 
+}
 
 //----------------------------------------------------------------------------
 // ALLOC_Calloc
 //----------------------------------------------------------------------------
 void* ALLOC_Calloc(ALLOC_HANDLE hAlloc, size_t num, size_t size)
 {
-    void* pMem = NULL;
+    void* pMem = nullptr;
     size_t n = 0;
 
     assert(hAlloc);
@@ -127,7 +127,7 @@ void* ALLOC_Calloc(ALLOC_HANDLE hAlloc, size_t num, size_t size)
 //----------------------------------------------------------------------------
 void ALLOC_Free(ALLOC_HANDLE hAlloc, void* pBlock)
 {
-    ALLOC_Allocator* self = NULL;
+    ALLOC_Allocator* self = nullptr;
 
     if (!pBlock)
         return;
@@ -135,7 +135,7 @@ void ALLOC_Free(ALLOC_HANDLE hAlloc, void* pBlock)
     assert(hAlloc);
 
     // Cast handle to an allocator instance
-    self = (ALLOC_Allocator*)hAlloc;
+    self = static_cast<ALLOC_Allocator*>(hAlloc);
 
     // Push the block onto a stack (i.e. the free-list)
     ALLOC_Push(self, pBlock);

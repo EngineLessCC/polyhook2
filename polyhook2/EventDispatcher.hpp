@@ -2,32 +2,34 @@
 
 #include "polyhook2/PolyHookOs.hpp"
 
-namespace PLH {
-template<typename T>
-class EventDispatcher
+namespace PLH
 {
-public:
-	typedef std::function<T> Event;
-	void operator+=(const Event& event);
+    template <typename T>
+    class EventDispatcher
+    {
+    public:
+        using Event = std::function<T>;
+        void operator+=(const Event& event);
 
-	template<typename... Args>
-	typename Event::result_type Invoke(Args&& ...Params)
-	{
-		assert(m_Event);
-		return m_Event(std::forward<Args>(Params)...);
-	}
+        template <typename... Args>
+        typename Event::result_type Invoke(Args&&... Params)
+        {
+            assert(m_Event);
+            return m_Event(std::forward<Args>(Params)...);
+        }
 
-	operator bool() const
-	{
-		return m_Event != nullptr;
-	}
-private:
-	Event m_Event;
-};
+        operator bool() const
+        {
+            return m_Event != nullptr;
+        }
 
-template<typename T>
-void EventDispatcher<T>::operator+=(const Event& event)
-{
-	m_Event = event;
-}
+    private:
+        Event m_Event;
+    };
+
+    template <typename T>
+    void EventDispatcher<T>::operator+=(const Event& event)
+    {
+        m_Event = event;
+    }
 }

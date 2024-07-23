@@ -4,51 +4,64 @@
 #include "polyhook2/PolyHookOs.hpp"
 #include "polyhook2/Enums.hpp"
 
-namespace PLH {
+#if DEBUG_BUILD
 
-// abstract base class for logging, clients should subclass this to intercept log messages
-class Logger
+namespace PLH
 {
-public:
-	// copy
-	virtual void log(const std::string& msg, ErrorLevel level) = 0;
-	virtual ~Logger() {};
-};
+    // abstract base class for logging, clients should subclass this to intercept log messages
+    class Logger
+    {
+    public:
+        // copy
+        virtual void log(const std::string& msg, ErrorLevel level) = 0;
 
-// class for registering client loggers
-class Log
-{
-private:
-	static std::shared_ptr<Logger> m_logger;
-public:
-	static void registerLogger(std::shared_ptr<Logger> logger);
-	static void log(std::string msg, ErrorLevel level);
-};
+        virtual ~Logger()
+        {
+        };
+    };
 
-// simple logger implementation
+    // class for registering client loggers
+    class Log
+    {
+        static std::shared_ptr<Logger> m_logger;
 
-struct Error {
-	std::string msg;
-	ErrorLevel lvl;
-};
+    public:
+        static void registerLogger(std::shared_ptr<Logger> logger);
+        static void log(std::string msg, ErrorLevel level);
+    };
 
-class ErrorLog : public Logger {
-public:
-	void setLogLevel(ErrorLevel level);
+    // simple logger implementation
 
-	//copy
-	void log(const std::string& msg, ErrorLevel level) override;
+    struct Error
+    {
+        std::string msg;
+        ErrorLevel lvl;
+    };
 
-	// copy
-	void push(const Error& err);
+    class ErrorLog : public Logger
+    {
+    public:
+        void setLogLevel(ErrorLevel level);
 
-	Error pop();
-	static ErrorLog& singleton();
-private:
-	std::vector<Error> m_log;
-	ErrorLevel m_logLevel = ErrorLevel::INFO;
-};
+        //copy
+        void log(const std::string& msg, ErrorLevel level) override;
 
+        // copy
+        void push(const Error& err);
+
+        Error pop();
+        static ErrorLog& singleton();
+
+    private:
+        std::vector<Error> m_log;
+        ErrorLevel m_logLevel = ErrorLevel::INFO;
+    };
 }
+
+#define PLH_LOG(...) PLH::Log::log(__VA_ARGS__)
+
+#endif
+
+#define PLH_LOG(...)
 
 #endif

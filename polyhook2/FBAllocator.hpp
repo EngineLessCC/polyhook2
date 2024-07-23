@@ -11,14 +11,14 @@
 #include "polyhook2/PolyHookOs.hpp"
 #include "MemAccessor.hpp"
 
-typedef void* ALLOC_HANDLE;
+using ALLOC_HANDLE = void*;
 
-typedef struct 
+using ALLOC_Block = struct
 {
     void* pNext;
-} ALLOC_Block;
+};
 
-typedef struct
+using ALLOC_Allocator = struct
 {
     const char* name;
     const char* pPool;
@@ -31,7 +31,7 @@ typedef struct
     uint16_t maxBlocksInUse;
     uint16_t allocations;
     uint16_t deallocations;
-} ALLOC_Allocator;
+};
 
 // Align fixed blocks on X-byte boundary based on CPU architecture.
 // Set value to 1, 2, 4 or 8.

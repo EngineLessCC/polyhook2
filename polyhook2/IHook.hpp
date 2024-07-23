@@ -29,66 +29,76 @@ _Pragma("GCC optimize (\"O0\")")
 
 #define PH_UNUSED(a) (void)a
 
-namespace PLH {
-class IHook : public MemAccessor {
-public:
-	IHook() {
-		m_debugSet = false;
-		m_hooked = false;
-	}
+namespace PLH
+{
+    class IHook : public MemAccessor
+    {
+    public:
+        IHook()
+        {
+            m_debugSet = false;
+            m_hooked = false;
+        }
 
-	IHook(IHook&& other) = default; //move
-	IHook& operator=(IHook&& other) = default;//move assignment
-	IHook(const IHook& other) = delete; //copy
-	IHook& operator=(const IHook& other) = delete; //copy assignment
-	virtual ~IHook() = default;
+        IHook(IHook&& other) = default; //move
+        IHook& operator=(IHook&& other) = default; //move assignment
+        IHook(const IHook& other) = delete; //copy
+        IHook& operator=(const IHook& other) = delete; //copy assignment
+        ~IHook() override = default;
 
-	virtual bool hook() = 0;
+        virtual bool hook() = 0;
 
-	virtual bool unHook() = 0;
+        virtual bool unHook() = 0;
 
-	// this is allowed to be nothing by default
-	virtual bool reHook() {
-		return true;
-	}
+        // this is allowed to be nothing by default
+        virtual bool reHook()
+        {
+            return true;
+        }
 
-	virtual bool setHooked(const bool state) {
-		if (m_hooked == state)
-			return true;
+        virtual bool setHooked(const bool state)
+        {
+            if (m_hooked == state)
+                return true;
 
-		return state ? hook() : unHook();
-	}
+            return state ? hook() : unHook();
+        }
 
-	virtual bool isHooked() {
-		return m_hooked;
-	}
+        virtual bool isHooked()
+        {
+            return m_hooked;
+        }
 
-	virtual HookType getType() const = 0;
+        virtual HookType getType() const = 0;
 
-	virtual void setDebug(const bool state) {
-		m_debugSet = state;
-	}
+        virtual void setDebug(const bool state)
+        {
+            m_debugSet = state;
+        }
 
-protected:
-	bool m_debugSet;
-	bool m_hooked = false;
-};
+    protected:
+        bool m_debugSet;
+        bool m_hooked = false;
+    };
 
-//Thanks @_can1357 for help with this.
-template<typename T, typename = void>
-struct callback_type { using type = T; };
+    //Thanks @_can1357 for help with this.
+    template <typename T, typename = void>
+    struct callback_type
+    {
+        using type = T;
+    };
 
-// from all the overloads below return the entire function type of whichever casts successfully
-template<typename T>
-using callback_type_t = typename callback_type<T>::type;
+    // from all the overloads below return the entire function type of whichever casts successfully
+    template <typename T>
+    using callback_type_t = typename callback_type<T>::type;
 
-// from all the overloads below return just the return type of whichever casts successfully
-template<typename T>
-using callback_return_type_t = typename callback_type<T>::return_type;
+    // from all the overloads below return just the return type of whichever casts successfully
+    template <typename T>
+    using callback_return_type_t = typename callback_type<T>::return_type;
 
-// given a value, call callback_type_t on its type
-template<auto V>
-using callback_type_v = typename callback_type<decltype(V)>::type;
+    // given a value, call callback_type_t on its type
+    template <auto V>
+    using callback_type_v = typename callback_type<decltype(V)>::type;
 
 #define MAKE_CALLBACK_IMPL(CCFROM, CCTO) template<typename F, typename Ret, typename... Args> \
 auto make_callback(Ret(CCFROM*)(Args...), F&& f) \
@@ -103,8 +113,8 @@ struct callback_type<Ret(CCFROM*)(Args...), void> \
     using return_type = Ret; \
 };
 
-// switch to __VA_OPT__ when C++ 2a release. MSVC removes comma before empty __VA_ARGS__ as is.
-// https://devblogs.microsoft.com/cppblog/msvc-preprocessor-progress-towards-conformance/
+    // switch to __VA_OPT__ when C++ 2a release. MSVC removes comma before empty __VA_ARGS__ as is.
+    // https://devblogs.microsoft.com/cppblog/msvc-preprocessor-progress-towards-conformance/
 #define MAKE_CALLBACK_CLASS_IMPL(CCFROM, CCTO, ...) template<typename F, typename Ret, typename Class, typename... Args> \
 auto make_callback(Ret(CCFROM Class::*)(Args...), F&& f) \
 { \
@@ -125,23 +135,28 @@ struct callback_type<Ret(CCFROM Class::*)(Args...), void> \
 #endif
 
 #ifndef POLYHOOK2_ARCH_X64
-MAKE_CALLBACK_IMPL(__stdcall, __stdcall)
-MAKE_CALLBACK_CLASS_IMPL(__stdcall, __stdcall)
+    MAKE_CALLBACK_IMPL(__stdcall, __stdcall)
 
-MAKE_CALLBACK_IMPL(__cdecl, __cdecl)
-MAKE_CALLBACK_CLASS_IMPL(__cdecl, __cdecl)
+    MAKE_CALLBACK_CLASS_IMPL(__stdcall, __stdcall)
 
-MAKE_CALLBACK_IMPL(__thiscall, __thiscall)
-MAKE_CALLBACK_CLASS_IMPL(__thiscall, __fastcall, char*)
+    MAKE_CALLBACK_IMPL(__cdecl, __cdecl)
+
+    MAKE_CALLBACK_CLASS_IMPL(__cdecl, __cdecl)
+
+    MAKE_CALLBACK_IMPL(__thiscall, __thiscall)
+
+    MAKE_CALLBACK_CLASS_IMPL(__thiscall, __fastcall, char*)
 #endif
 
-MAKE_CALLBACK_IMPL(__fastcall, __fastcall)
-MAKE_CALLBACK_CLASS_IMPL(__fastcall, __fastcall)
+    MAKE_CALLBACK_IMPL(__fastcall, __fastcall)
 
-template <int I, class... Ts>
-decltype(auto) get_pack_idx(Ts&&... ts) {
-	return std::get<I>(std::forward_as_tuple(ts...));
-}
+    MAKE_CALLBACK_CLASS_IMPL(__fastcall, __fastcall)
+
+    template <int I, class... Ts>
+    decltype(auto) get_pack_idx(Ts&&... ts)
+    {
+        return std::get<I>(std::forward_as_tuple(ts...));
+    }
 }
 
 /**
@@ -152,6 +167,7 @@ arguments of the function and the type of the callback respectively.
 #define HOOK_CALLBACK(pType, name, body) \
     typedef PLH::callback_type_t<decltype(pType)> name##_t; \
     PLH::callback_type_t<decltype(pType)> (name) = PLH::make_callback(pType, [](auto... _args) -> PLH::callback_return_type_t<decltype(pType)> body) // NOLINT(bugprone-macro-parentheses)
+
 
 /**
 When using the HOOK_CALLBACK macro this helper utility can be used to retreive one of the original

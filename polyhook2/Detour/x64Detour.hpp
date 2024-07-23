@@ -54,7 +54,6 @@ protected:
     detour_scheme_t m_detourScheme = detour_scheme_t::RECOMMENDED; // this is the most stable configuration.
     optional<uint64_t> m_valloc2_region;
     RangeAllocator m_allocator;
-    asmjit::JitRuntime m_asmjit_rt;
     detour_scheme_t m_chosen_scheme = detour_scheme_t::VALLOC2;
 
     bool makeTrampoline(insts_t& prologue, insts_t& outJmpTable);

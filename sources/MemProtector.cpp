@@ -2,90 +2,95 @@
 #include "polyhook2/Enums.hpp"
 #include "polyhook2/PolyHookOsIncludes.hpp"
 
-std::ostream& operator<<(std::ostream& os, const PLH::ProtFlag flags) {
-	if (flags == PLH::ProtFlag::UNSET) {
-		os << "UNSET";
-		return os;
-	}
+std::ostream& operator<<(std::ostream& os, const PLH::ProtFlag flags)
+{
+    if (flags == PLH::ProtFlag::UNSET)
+    {
+        os << "UNSET";
+        return os;
+    }
 
-	if (flags & PLH::ProtFlag::X)
-		os << "x";
-	else
-		os << "-";
+    if (flags & PLH::ProtFlag::X)
+        os << "x";
+    else
+        os << "-";
 
-	if (flags & PLH::ProtFlag::R)
-		os << "r";
-	else
-		os << "-";
+    if (flags & PLH::ProtFlag::R)
+        os << "r";
+    else
+        os << "-";
 
-	if (flags & PLH::ProtFlag::W)
-		os << "w";
-	else
-		os << "-";
+    if (flags & PLH::ProtFlag::W)
+        os << "w";
+    else
+        os << "-";
 
-	if (flags & PLH::ProtFlag::NONE)
-		os << "n";
-	else
-		os << "-";
+    if (flags & PLH::ProtFlag::NONE)
+        os << "n";
+    else
+        os << "-";
 
-	if (flags & PLH::ProtFlag::P)
-		os << " private";
-	else if (flags & PLH::ProtFlag::S)
-		os << " shared";
-	return os;
+    if (flags & PLH::ProtFlag::P)
+        os << " private";
+    else if (flags & PLH::ProtFlag::S)
+        os << " shared";
+    return os;
 }
 
 #if defined(POLYHOOK2_OS_WINDOWS)
 
-int PLH::TranslateProtection(const PLH::ProtFlag flags) {
-	int NativeFlag = 0;
-	if (flags == PLH::ProtFlag::X)
-		NativeFlag = PAGE_EXECUTE;
+int PLH::TranslateProtection(const ProtFlag flags)
+{
+    int NativeFlag = 0;
+    if (flags == X)
+        NativeFlag = PAGE_EXECUTE;
 
-	if (flags == PLH::ProtFlag::R)
-		NativeFlag = PAGE_READONLY;
+    if (flags == R)
+        NativeFlag = PAGE_READONLY;
 
-	if (flags == PLH::ProtFlag::W || (flags == (PLH::ProtFlag::R | PLH::ProtFlag::W)))
-		NativeFlag = PAGE_READWRITE;
+    if (flags == W || (flags == (R | W)))
+        NativeFlag = PAGE_READWRITE;
 
-	if ((flags & PLH::ProtFlag::X) && (flags & PLH::ProtFlag::R))
-		NativeFlag = PAGE_EXECUTE_READ;
+    if ((flags & X) && (flags & R))
+        NativeFlag = PAGE_EXECUTE_READ;
 
-	if ((flags & PLH::ProtFlag::X) && (flags & PLH::ProtFlag::W))
-		NativeFlag = PAGE_EXECUTE_READWRITE;
+    if ((flags & X) && (flags & W))
+        NativeFlag = PAGE_EXECUTE_READWRITE;
 
-	if (flags & PLH::ProtFlag::NONE)
-		NativeFlag = PAGE_NOACCESS;
-	return NativeFlag;
+    if (flags & NONE)
+        NativeFlag = PAGE_NOACCESS;
+    return NativeFlag;
 }
 
-PLH::ProtFlag PLH::TranslateProtection(const int prot) {
-	PLH::ProtFlag flags = PLH::ProtFlag::UNSET;
-	switch (prot) {
-	case PAGE_EXECUTE:
-		flags = flags | PLH::ProtFlag::X;
-		break;
-	case PAGE_READONLY:
-		flags = flags | PLH::ProtFlag::R;
-		break;
-	case PAGE_READWRITE:
-		flags = flags | PLH::ProtFlag::W;
-		flags = flags | PLH::ProtFlag::R;
-		break;
-	case PAGE_EXECUTE_READWRITE:
-		flags = flags | PLH::ProtFlag::X;
-		flags = flags | PLH::ProtFlag::R;
-		flags = flags | PLH::ProtFlag::W;
-		break;
-	case PAGE_EXECUTE_READ:
-		flags = flags | PLH::ProtFlag::X;
-		flags = flags | PLH::ProtFlag::R;
-		break;
-	case PAGE_NOACCESS:
-		flags = flags | PLH::ProtFlag::NONE;
-		break;
-	}
-	return flags;
+PLH::ProtFlag PLH::TranslateProtection(const int prot)
+{
+    ProtFlag flags = UNSET;
+    switch (prot)
+    {
+    case PAGE_EXECUTE:
+        flags = flags | X;
+        break;
+    case PAGE_READONLY:
+        flags = flags | R;
+        break;
+    case PAGE_READWRITE:
+        flags = flags | W;
+        flags = flags | R;
+        break;
+    case PAGE_EXECUTE_READWRITE:
+        flags = flags | X;
+        flags = flags | R;
+        flags = flags | W;
+        break;
+    case PAGE_EXECUTE_READ:
+        flags = flags | X;
+        flags = flags | R;
+        break;
+    case PAGE_NOACCESS:
+        flags = flags | NONE;
+        break;
+    }
+    return flags;
 }
 
 #elif defined(POLYHOOK2_OS_LINUX)

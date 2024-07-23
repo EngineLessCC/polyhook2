@@ -3,27 +3,31 @@
 
 #include "../UID.hpp"
 
-class Effect {
+class Effect
+{
 public:
-	Effect();
+    Effect();
 
-	Effect& operator=(const Effect& rhs);
+    Effect& operator=(const Effect& rhs);
 
-	void trigger();
+    void trigger();
 
-	bool didExecute();
+    bool didExecute();
+
 private:
-	bool m_executed;
-	PLH::UID m_uid;
+    bool m_executed;
+    PLH::UID m_uid;
 };
 
 /**Track if some side effect happened.**/
-class EffectTracker {
+class EffectTracker
+{
 public:
-	void PushEffect();
-	Effect PopEffect();
-	Effect& PeakEffect();
+    void PushEffect();
+    Effect PopEffect();
+    Effect& PeakEffect();
+
 private:
-	std::vector<Effect> m_effectQ;
+    std::vector<Effect> m_effectQ;
 };
 #endif
